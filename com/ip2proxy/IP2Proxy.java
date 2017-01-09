@@ -20,6 +20,7 @@ public class IP2Proxy {
 	private static final Pattern Pattern4 = Pattern.compile("^(.*:)(([0-9]+\\.){3}[0-9]+)$");
 	private static final Pattern Pattern5 = Pattern.compile("^.*((:[0-9A-F]{1,4}){2})$");
 	private static final Pattern Pattern6 = Pattern.compile("^[0:]+((:[0-9A-F]{1,4}){1,2})$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern Pattern7 = Pattern.compile("^([0-9]+\\.){1,2}[0-9]+$");
 	private static final BigInteger MAX_IPV4_RANGE = new BigInteger("4294967295");
 	private static final BigInteger MAX_IPV6_RANGE = new BigInteger("340282366920938463463374607431768211455");
 	private static final String MSG_NOT_SUPPORTED = "NOT SUPPORTED";
@@ -86,7 +87,7 @@ public class IP2Proxy {
 	private boolean ISP_ENABLED;
 	private boolean PROXYTYPE_ENABLED;
 	
-	private static final String _ModuleVersion = "1.0.0";
+	private static final String _ModuleVersion = "1.0.1";
 	
 	public IP2Proxy() {
 	
@@ -392,7 +393,6 @@ public class IP2Proxy {
 	}
 	
 	public ProxyResult ProxyQuery(String IPAddress, Modes Mode) throws IOException {
-		IPAddress = IPAddress.trim();
 		ProxyResult Result = new ProxyResult();
 		RandomAccessFile RF = null;
 		MappedByteBuffer Buf = null;
@@ -955,7 +955,7 @@ public class IP2Proxy {
 			A1 = new BigInteger("4");
 			A2 = new BigInteger(String.valueOf(IPv4No(IP)));
 		}
-		else if (Pattern2.matcher(IP).matches() || Pattern3.matcher(IP).matches()) {
+		else if (Pattern2.matcher(IP).matches() || Pattern3.matcher(IP).matches() || Pattern7.matcher(IP).matches()) {
 			throw new UnknownHostException();
 		}
 		else {
