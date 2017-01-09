@@ -37,7 +37,7 @@ public class Main {
 			
 			String IP = "221.121.146.0";
 			
-			if (Proxy.Open("C:\\DATA\\IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP.BIN", IP2Proxy.IOModes.IP2PROXY_MEMORY_MAPPED) == 0) {
+			if (Proxy.Open("/usr/data/IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP.BIN", IP2Proxy.IOModes.IP2PROXY_MEMORY_MAPPED) == 0) {
 				System.out.println("GetModuleVersion: " + Proxy.GetModuleVersion());
 				System.out.println("GetPackageVersion: " + Proxy.GetPackageVersion());
 				System.out.println("GetDatabaseVersion: " + Proxy.GetDatabaseVersion());
