@@ -8,6 +8,11 @@ public class ProxyResult {
 	public String Region;
 	public String City;
 	public String ISP;
+	public String Domain;
+	public String Usage_Type;
+	public String ASN;
+	public String AS;
+	public String Last_Seen;
 	
 	ProxyResult() {
 	

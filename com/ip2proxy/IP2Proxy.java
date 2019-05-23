@@ -41,14 +41,24 @@ public class IP2Proxy {
 		ISP,
 		PROXY_TYPE,
 		IS_PROXY,
+		DOMAIN,
+		USAGE_TYPE,
+		ASN,
+		AS,
+		LAST_SEEN,
 		ALL;
 	}
 	
-	private static final int COUNTRY_POSITION[] = {0, 2, 3, 3, 3};
-	private static final int REGION_POSITION[] = {0, 0, 0, 4, 4};
-	private static final int CITY_POSITION[] = {0, 0, 0, 5, 5};
-	private static final int ISP_POSITION[] = {0, 0, 0, 0, 6};
-	private static final int PROXYTYPE_POSITION[] = {0, 0, 2, 2, 2};
+	private static final int COUNTRY_POSITION[] = {0, 2, 3, 3, 3, 3, 3, 3, 3};
+	private static final int REGION_POSITION[] = {0, 0, 0, 4, 4, 4, 4, 4, 4};
+	private static final int CITY_POSITION[] = {0, 0, 0, 5, 5, 5, 5, 5, 5};
+	private static final int ISP_POSITION[] = {0, 0, 0, 0, 6, 6, 6, 6, 6};
+	private static final int PROXYTYPE_POSITION[] = {0, 0, 2, 2, 2, 2, 2, 2, 2};
+	private static final int DOMAIN_POSITION[] = {0, 0, 0, 0, 0, 7, 7, 7, 7};
+	private static final int USAGETYPE_POSITION[] = {0, 0, 0, 0, 0, 0, 8, 8, 8};
+	private static final int ASN_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 9, 9};
+	private static final int AS_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 10, 10};
+	private static final int LASTSEEN_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 0, 11};
 	
 	private MappedByteBuffer _IPv4Buffer = null;
 	private MappedByteBuffer _IPv6Buffer = null;
@@ -81,13 +91,24 @@ public class IP2Proxy {
 	private int CITY_POSITION_OFFSET;
 	private int ISP_POSITION_OFFSET;
 	private int PROXYTYPE_POSITION_OFFSET;
+	private int DOMAIN_POSITION_OFFSET;
+	private int USAGETYPE_POSITION_OFFSET;
+	private int ASN_POSITION_OFFSET;
+	private int AS_POSITION_OFFSET;
+	private int LASTSEEN_POSITION_OFFSET;
+	
 	private boolean COUNTRY_ENABLED;
 	private boolean REGION_ENABLED;
 	private boolean CITY_ENABLED;
 	private boolean ISP_ENABLED;
 	private boolean PROXYTYPE_ENABLED;
+	private boolean DOMAIN_ENABLED;
+	private boolean USAGETYPE_ENABLED;
+	private boolean ASN_ENABLED;
+	private boolean AS_ENABLED;
+	private boolean LASTSEEN_ENABLED;
 	
-	private static final String _ModuleVersion = "1.0.1";
+	private static final String _ModuleVersion = "2.0.0";
 	
 	public IP2Proxy() {
 	
@@ -125,7 +146,7 @@ public class IP2Proxy {
 /**
 * This function returns ans integer to state if it proxy.
 * @param IP IP Address you wish to query
-* @return -1 if error, 0 if not a proxy, 1 if proxy except DCH, 2 if proxy and DCH
+* @return -1 if error, 0 if not a proxy, 1 if proxy except DCH and SES, 2 if proxy and either DCH or SES
 */
 	public int IsProxy(String IP) throws IOException {
 		return ProxyQuery(IP, Modes.IS_PROXY).Is_Proxy;
@@ -183,6 +204,51 @@ public class IP2Proxy {
 */
 	public String GetProxyType(String IP) throws IOException {
 		return ProxyQuery(IP, Modes.PROXY_TYPE).Proxy_Type;
+	}
+	
+/**
+* This function returns the domain.
+* @param IP IP Address you wish to query
+* @return Domain
+*/
+	public String GetDomain(String IP) throws IOException {
+		return ProxyQuery(IP, Modes.DOMAIN).Domain;
+	}
+	
+/**
+* This function returns the usage type.
+* @param IP IP Address you wish to query
+* @return Proxy type
+*/
+	public String GetUsageType(String IP) throws IOException {
+		return ProxyQuery(IP, Modes.USAGE_TYPE).Usage_Type;
+	}
+	
+/**
+* This function returns the Autonomous System Number.
+* @param IP IP Address you wish to query
+* @return Autonomous System Number
+*/
+	public String GetASN(String IP) throws IOException {
+		return ProxyQuery(IP, Modes.ASN).ASN;
+	}
+	
+/**
+* This function returns the Autonomous System name.
+* @param IP IP Address you wish to query
+* @return Autonomous System name
+*/
+	public String GetAS(String IP) throws IOException {
+		return ProxyQuery(IP, Modes.AS).AS;
+	}
+	
+/**
+* This function returns number of days the proxy was last seen.
+* @param IP IP Address you wish to query
+* @return Number of days last seen
+*/
+	public String GetLastSeen(String IP) throws IOException {
+		return ProxyQuery(IP, Modes.LAST_SEEN).Last_Seen;
 	}
 	
 /**
@@ -305,12 +371,22 @@ public class IP2Proxy {
 				CITY_POSITION_OFFSET = (CITY_POSITION[_DBType] != 0) ? (CITY_POSITION[_DBType] - 1) << 2 : 0;
 				ISP_POSITION_OFFSET = (ISP_POSITION[_DBType] != 0) ? (ISP_POSITION[_DBType] - 1) << 2 : 0;
 				PROXYTYPE_POSITION_OFFSET = (PROXYTYPE_POSITION[_DBType] != 0) ? (PROXYTYPE_POSITION[_DBType] - 1) << 2 : 0;
+				DOMAIN_POSITION_OFFSET = (DOMAIN_POSITION[_DBType] != 0) ? (DOMAIN_POSITION[_DBType] - 1) << 2 : 0;
+				USAGETYPE_POSITION_OFFSET = (USAGETYPE_POSITION[_DBType] != 0) ? (USAGETYPE_POSITION[_DBType] - 1) << 2 : 0;
+				ASN_POSITION_OFFSET = (ASN_POSITION[_DBType] != 0) ? (ASN_POSITION[_DBType] - 1) << 2 : 0;
+				AS_POSITION_OFFSET = (AS_POSITION[_DBType] != 0) ? (AS_POSITION[_DBType] - 1) << 2 : 0;
+				LASTSEEN_POSITION_OFFSET = (LASTSEEN_POSITION[_DBType] != 0) ? (LASTSEEN_POSITION[_DBType] - 1) << 2 : 0;
 				
 				COUNTRY_ENABLED = (COUNTRY_POSITION[_DBType] != 0) ? true : false;
 				REGION_ENABLED = (REGION_POSITION[_DBType] != 0) ? true : false;
 				CITY_ENABLED = (CITY_POSITION[_DBType] != 0) ? true : false;
 				ISP_ENABLED = (ISP_POSITION[_DBType] != 0) ? true : false;
 				PROXYTYPE_ENABLED = (PROXYTYPE_POSITION[_DBType] != 0) ? true : false;
+				DOMAIN_ENABLED = (DOMAIN_POSITION[_DBType] != 0) ? true : false;
+				USAGETYPE_ENABLED = (USAGETYPE_POSITION[_DBType] != 0) ? true : false;
+				ASN_ENABLED = (ASN_POSITION[_DBType] != 0) ? true : false;
+				AS_ENABLED = (AS_POSITION[_DBType] != 0) ? true : false;
+				LASTSEEN_ENABLED = (LASTSEEN_POSITION[_DBType] != 0) ? true : false;
 				
 				final MappedByteBuffer _IndexBuffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _IndexBaseAddr - 1, _BaseAddr - _IndexBaseAddr); // reading indexes
 				_IndexBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -406,6 +482,11 @@ public class IP2Proxy {
 				Result.Region = MSG_INVALID_IP;
 				Result.City = MSG_INVALID_IP;
 				Result.ISP = MSG_INVALID_IP;
+				Result.Domain = MSG_INVALID_IP;
+				Result.Usage_Type = MSG_INVALID_IP;
+				Result.ASN = MSG_INVALID_IP;
+				Result.AS = MSG_INVALID_IP;
+				Result.Last_Seen = MSG_INVALID_IP;
 				return Result;
 			}
 			
@@ -443,6 +524,11 @@ public class IP2Proxy {
 				Result.Region = MSG_INVALID_IP;
 				Result.City = MSG_INVALID_IP;
 				Result.ISP = MSG_INVALID_IP;
+				Result.Domain = MSG_INVALID_IP;
+				Result.Usage_Type = MSG_INVALID_IP;
+				Result.ASN = MSG_INVALID_IP;
+				Result.AS = MSG_INVALID_IP;
+				Result.Last_Seen = MSG_INVALID_IP;
 				return Result;
 			}
 			
@@ -463,6 +549,11 @@ public class IP2Proxy {
 					Result.Region = MSG_MISSING_FILE;
 					Result.City = MSG_MISSING_FILE;
 					Result.ISP = MSG_MISSING_FILE;
+					Result.Domain = MSG_MISSING_FILE;
+					Result.Usage_Type = MSG_MISSING_FILE;
+					Result.ASN = MSG_MISSING_FILE;
+					Result.AS = MSG_MISSING_FILE;
+					Result.Last_Seen = MSG_MISSING_FILE;
 					return Result;
 				}
 			}
@@ -503,6 +594,11 @@ public class IP2Proxy {
 					Result.Region = MSG_IPV6_UNSUPPORTED;
 					Result.City = MSG_IPV6_UNSUPPORTED;
 					Result.ISP = MSG_IPV6_UNSUPPORTED;
+					Result.Domain = MSG_IPV6_UNSUPPORTED;
+					Result.Usage_Type = MSG_IPV6_UNSUPPORTED;
+					Result.ASN = MSG_IPV6_UNSUPPORTED;
+					Result.AS = MSG_IPV6_UNSUPPORTED;
+					Result.Last_Seen = MSG_IPV6_UNSUPPORTED;
 					return Result;
 				}
 				MAX_IP_RANGE = MAX_IPV6_RANGE;
@@ -546,6 +642,11 @@ public class IP2Proxy {
 					String Region = MSG_NOT_SUPPORTED;
 					String City = MSG_NOT_SUPPORTED;
 					String ISP = MSG_NOT_SUPPORTED;
+					String Domain = MSG_NOT_SUPPORTED;
+					String Usage_Type = MSG_NOT_SUPPORTED;
+					String ASN = MSG_NOT_SUPPORTED;
+					String AS = MSG_NOT_SUPPORTED;
+					String Last_Seen = MSG_NOT_SUPPORTED;
 					
 					if (IPType == 6) { // IPv6
 						RowOffset = RowOffset + 12; // coz below is assuming all columns are 4 bytes, so got 12 left to go to make 16 bytes total
@@ -587,11 +688,41 @@ public class IP2Proxy {
 						}
 					}
 					
+					if (DOMAIN_ENABLED) {
+						if (Mode == Modes.ALL || Mode == Modes.DOMAIN) {
+							Domain = ReadStr(Read32(RowOffset + DOMAIN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+						}
+					}
+					
+					if (USAGETYPE_ENABLED) {
+						if (Mode == Modes.ALL || Mode == Modes.USAGE_TYPE) {
+							Usage_Type = ReadStr(Read32(RowOffset + USAGETYPE_POSITION_OFFSET, Buf, RF).longValue(), RF);
+						}
+					}
+					
+					if (ASN_ENABLED) {
+						if (Mode == Modes.ALL || Mode == Modes.ASN) {
+							ASN = ReadStr(Read32(RowOffset + ASN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+						}
+					}
+					
+					if (AS_ENABLED) {
+						if (Mode == Modes.ALL || Mode == Modes.AS) {
+							AS = ReadStr(Read32(RowOffset + AS_POSITION_OFFSET, Buf, RF).longValue(), RF);
+						}
+					}
+					
+					if (LASTSEEN_ENABLED) {
+						if (Mode == Modes.ALL || Mode == Modes.LAST_SEEN) {
+							Last_Seen = ReadStr(Read32(RowOffset + LASTSEEN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+						}
+					}
+					
 					if (Country_Short.equals("-") || Proxy_Type.equals("-")) {
 						Is_Proxy = 0;
 					}
 					else {
-						if (Proxy_Type.equals("DCH")) {
+						if (Proxy_Type.equals("DCH") || Proxy_Type.equals("SES")) {
 							Is_Proxy = 2;
 						}
 						else {
@@ -606,6 +737,11 @@ public class IP2Proxy {
 					Result.Region = Region;
 					Result.City = City;
 					Result.ISP = ISP;
+					Result.Domain = Domain;
+					Result.Usage_Type = Usage_Type;
+					Result.ASN = ASN;
+					Result.AS = AS;
+					Result.Last_Seen = Last_Seen;
 					return Result;
 				}
 				else {
@@ -624,6 +760,11 @@ public class IP2Proxy {
 			Result.Region = MSG_INVALID_IP;
 			Result.City = MSG_INVALID_IP;
 			Result.ISP = MSG_INVALID_IP;
+			Result.Domain = MSG_INVALID_IP;
+			Result.Usage_Type = MSG_INVALID_IP;
+			Result.ASN = MSG_INVALID_IP;
+			Result.AS = MSG_INVALID_IP;
+			Result.Last_Seen = MSG_INVALID_IP;
 			return Result;
 		}
 		catch(IOException Ex) {
