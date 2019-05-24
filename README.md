@@ -24,7 +24,7 @@ Below are the methods supported in this class.
 |GetDatabaseVersion|Get the database version.|
 |IsProxy|Check whether if an IP address was a proxy. Returned value:<ul><li>-1 : errors</li><li>0 : not a proxy</li><li>1 : a proxy</li><li>2 : a data center IP address or search engine robot</li></ul>|
 |GetAll|Return the proxy information in an object.|
-|GetProxyType|Return the proxy type. Please visit <a href="https://www.ip2location.com/databases/px4-ip-proxytype-country-region-city-isp" target="_blank">IP2Location</a> for the list of proxy types supported|
+|GetProxyType|Return the proxy type. Please visit <a href="https://www.ip2location.com/database/px8-ip-proxytype-country-region-city-isp-domain-usagetype-asn-lastseen" target="_blank">IP2Location</a> for the list of proxy types supported|
 |GetCountryShort|Return the ISO3166-1 country code (2-digits) of the proxy.|
 |GetCountryLong|Return the ISO3166-1 country name of the proxy.|
 |GetRegion|Return the ISO3166-2 region name of the proxy. Please visit <a href="https://www.ip2location.com/free/iso3166-2" target="_blank">ISO3166-2 Subdivision Code</a> for the information of ISO3166-2 supported|
