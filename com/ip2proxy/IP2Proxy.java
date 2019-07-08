@@ -23,6 +23,12 @@ public class IP2Proxy {
 	private static final Pattern Pattern7 = Pattern.compile("^([0-9]+\\.){1,2}[0-9]+$");
 	private static final BigInteger MAX_IPV4_RANGE = new BigInteger("4294967295");
 	private static final BigInteger MAX_IPV6_RANGE = new BigInteger("340282366920938463463374607431768211455");
+	private static final BigInteger FROM_6TO4 = new BigInteger("42545680458834377588178886921629466624");
+	private static final BigInteger TO_6TO4 = new BigInteger("42550872755692912415807417417958686719");
+	private static final BigInteger FROM_TEREDO = new BigInteger("42540488161975842760550356425300246528");
+	private static final BigInteger TO_TEREDO = new BigInteger("42540488241204005274814694018844196863");
+	private static final BigInteger LAST_32BITS = new BigInteger("4294967295");
+	
 	private static final String MSG_NOT_SUPPORTED = "NOT SUPPORTED";
 	private static final String MSG_INVALID_IP = "INVALID IP ADDRESS";
 	private static final String MSG_MISSING_FILE = "MISSING FILE";
@@ -108,7 +114,7 @@ public class IP2Proxy {
 	private boolean AS_ENABLED;
 	private boolean LASTSEEN_ENABLED;
 	
-	private static final String _ModuleVersion = "2.0.0";
+	private static final String _ModuleVersion = "2.1.0";
 	
 	public IP2Proxy() {
 	
@@ -1112,8 +1118,21 @@ public class IP2Proxy {
 			else if (IA instanceof Inet4Address) { // this will run in cases of IPv4-mapped IPv6 addresses
 				IPType = "4";
 			}
-			A1 = new BigInteger(IPType);
 			A2 = new BigInteger(1, Bytes);
+			
+			if (A2.compareTo(FROM_6TO4) >= 0 && A2.compareTo(TO_6TO4) <= 0) {
+				// 6to4 so need to remap to ipv4
+				IPType = "4";
+				A2 = A2.shiftRight(80);
+				A2 = A2.and(LAST_32BITS);
+			}
+			else if (A2.compareTo(FROM_TEREDO) >= 0 && A2.compareTo(TO_TEREDO) <= 0) {
+				// Teredo so need to remap to ipv4
+				IPType = "4";
+				A2 = A2.not();
+				A2 = A2.and(LAST_32BITS);
+			}
+			A1 = new BigInteger(IPType);
 		}
 		BigInteger[] BI = new BigInteger[] { A1, A2, A3 };
 		
