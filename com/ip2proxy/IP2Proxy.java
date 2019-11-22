@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
@@ -114,7 +115,7 @@ public class IP2Proxy {
 	private boolean AS_ENABLED;
 	private boolean LASTSEEN_ENABLED;
 	
-	private static final String _ModuleVersion = "2.1.0";
+	private static final String _ModuleVersion = "2.2.0";
 	
 	public IP2Proxy() {
 	
@@ -372,16 +373,29 @@ public class IP2Proxy {
 				_IPv6ColumnSize = 16 + ((_DBColumn - 1) << 2); // 4 bytes each column, except IPFrom column which is 16 bytes
 				
 				// since both IPv4 and IPv6 use 4 bytes for the below columns, can just do it once here
-				COUNTRY_POSITION_OFFSET = (COUNTRY_POSITION[_DBType] != 0) ? (COUNTRY_POSITION[_DBType] - 1) << 2 : 0;
-				REGION_POSITION_OFFSET = (REGION_POSITION[_DBType] != 0) ? (REGION_POSITION[_DBType] - 1) << 2 : 0;
-				CITY_POSITION_OFFSET = (CITY_POSITION[_DBType] != 0) ? (CITY_POSITION[_DBType] - 1) << 2 : 0;
-				ISP_POSITION_OFFSET = (ISP_POSITION[_DBType] != 0) ? (ISP_POSITION[_DBType] - 1) << 2 : 0;
-				PROXYTYPE_POSITION_OFFSET = (PROXYTYPE_POSITION[_DBType] != 0) ? (PROXYTYPE_POSITION[_DBType] - 1) << 2 : 0;
-				DOMAIN_POSITION_OFFSET = (DOMAIN_POSITION[_DBType] != 0) ? (DOMAIN_POSITION[_DBType] - 1) << 2 : 0;
-				USAGETYPE_POSITION_OFFSET = (USAGETYPE_POSITION[_DBType] != 0) ? (USAGETYPE_POSITION[_DBType] - 1) << 2 : 0;
-				ASN_POSITION_OFFSET = (ASN_POSITION[_DBType] != 0) ? (ASN_POSITION[_DBType] - 1) << 2 : 0;
-				AS_POSITION_OFFSET = (AS_POSITION[_DBType] != 0) ? (AS_POSITION[_DBType] - 1) << 2 : 0;
-				LASTSEEN_POSITION_OFFSET = (LASTSEEN_POSITION[_DBType] != 0) ? (LASTSEEN_POSITION[_DBType] - 1) << 2 : 0;
+				// COUNTRY_POSITION_OFFSET = (COUNTRY_POSITION[_DBType] != 0) ? (COUNTRY_POSITION[_DBType] - 1) << 2 : 0;
+				// REGION_POSITION_OFFSET = (REGION_POSITION[_DBType] != 0) ? (REGION_POSITION[_DBType] - 1) << 2 : 0;
+				// CITY_POSITION_OFFSET = (CITY_POSITION[_DBType] != 0) ? (CITY_POSITION[_DBType] - 1) << 2 : 0;
+				// ISP_POSITION_OFFSET = (ISP_POSITION[_DBType] != 0) ? (ISP_POSITION[_DBType] - 1) << 2 : 0;
+				// PROXYTYPE_POSITION_OFFSET = (PROXYTYPE_POSITION[_DBType] != 0) ? (PROXYTYPE_POSITION[_DBType] - 1) << 2 : 0;
+				// DOMAIN_POSITION_OFFSET = (DOMAIN_POSITION[_DBType] != 0) ? (DOMAIN_POSITION[_DBType] - 1) << 2 : 0;
+				// USAGETYPE_POSITION_OFFSET = (USAGETYPE_POSITION[_DBType] != 0) ? (USAGETYPE_POSITION[_DBType] - 1) << 2 : 0;
+				// ASN_POSITION_OFFSET = (ASN_POSITION[_DBType] != 0) ? (ASN_POSITION[_DBType] - 1) << 2 : 0;
+				// AS_POSITION_OFFSET = (AS_POSITION[_DBType] != 0) ? (AS_POSITION[_DBType] - 1) << 2 : 0;
+				// LASTSEEN_POSITION_OFFSET = (LASTSEEN_POSITION[_DBType] != 0) ? (LASTSEEN_POSITION[_DBType] - 1) << 2 : 0;
+				
+				// slightly different offset for reading by row
+				COUNTRY_POSITION_OFFSET = (COUNTRY_POSITION[_DBType] != 0) ? (COUNTRY_POSITION[_DBType] - 2) << 2 : 0;
+				REGION_POSITION_OFFSET = (REGION_POSITION[_DBType] != 0) ? (REGION_POSITION[_DBType] - 2) << 2 : 0;
+				CITY_POSITION_OFFSET = (CITY_POSITION[_DBType] != 0) ? (CITY_POSITION[_DBType] - 2) << 2 : 0;
+				ISP_POSITION_OFFSET = (ISP_POSITION[_DBType] != 0) ? (ISP_POSITION[_DBType] - 2) << 2 : 0;
+				PROXYTYPE_POSITION_OFFSET = (PROXYTYPE_POSITION[_DBType] != 0) ? (PROXYTYPE_POSITION[_DBType] - 2) << 2 : 0;
+				DOMAIN_POSITION_OFFSET = (DOMAIN_POSITION[_DBType] != 0) ? (DOMAIN_POSITION[_DBType] - 2) << 2 : 0;
+				USAGETYPE_POSITION_OFFSET = (USAGETYPE_POSITION[_DBType] != 0) ? (USAGETYPE_POSITION[_DBType] - 2) << 2 : 0;
+				ASN_POSITION_OFFSET = (ASN_POSITION[_DBType] != 0) ? (ASN_POSITION[_DBType] - 2) << 2 : 0;
+				AS_POSITION_OFFSET = (AS_POSITION[_DBType] != 0) ? (AS_POSITION[_DBType] - 2) << 2 : 0;
+				LASTSEEN_POSITION_OFFSET = (LASTSEEN_POSITION[_DBType] != 0) ? (LASTSEEN_POSITION[_DBType] - 2) << 2 : 0;
+				
 				
 				COUNTRY_ENABLED = (COUNTRY_POSITION[_DBType] != 0) ? true : false;
 				REGION_ENABLED = (REGION_POSITION[_DBType] != 0) ? true : false;
@@ -477,7 +491,9 @@ public class IP2Proxy {
 	public ProxyResult ProxyQuery(String IPAddress, Modes Mode) throws IOException {
 		ProxyResult Result = new ProxyResult();
 		RandomAccessFile RF = null;
-		MappedByteBuffer Buf = null;
+		// MappedByteBuffer Buf = null;
+		ByteBuffer Buf = null;
+		ByteBuffer DataBuf = null;
 		
 		try {
 			if (IPAddress == null || IPAddress.length() == 0) {
@@ -538,7 +554,7 @@ public class IP2Proxy {
 				return Result;
 			}
 			
-			long CountryPos = 0;
+			long Pos = 0;
 			long Low = 0;
 			long High = 0;
 			long Mid = 0;
@@ -579,7 +595,9 @@ public class IP2Proxy {
 				High = _DBCount;
 				
 				if (_UseMemoryMappedFile) {
-					Buf = _IPv4Buffer;
+					// Buf = _IPv4Buffer;
+					Buf = _IPv4Buffer.duplicate(); // this enables this thread to maintain its own position in a multi-threaded environment
+					Buf.order(ByteOrder.LITTLE_ENDIAN);
 					BufCapacity = Buf.capacity();
 				}
 				else {
@@ -611,7 +629,9 @@ public class IP2Proxy {
 				High = _DBCountIPv6;
 				
 				if (_UseMemoryMappedFile) {
-					Buf = _IPv6Buffer;
+					// Buf = _IPv6Buffer;
+					Buf = _IPv6Buffer.duplicate(); // this enables this thread to maintain its own position in a multi-threaded environment
+					Buf.order(ByteOrder.LITTLE_ENDIAN);
 					BufCapacity = Buf.capacity();
 				}
 				else {
@@ -654,73 +674,97 @@ public class IP2Proxy {
 					String AS = MSG_NOT_SUPPORTED;
 					String Last_Seen = MSG_NOT_SUPPORTED;
 					
+					int FirstCol = 4; // IP From is 4 bytes
 					if (IPType == 6) { // IPv6
-						RowOffset = RowOffset + 12; // coz below is assuming all columns are 4 bytes, so got 12 left to go to make 16 bytes total
+						FirstCol = 16; // IPv6 is 16 bytes
+						// RowOffset = RowOffset + 12; // coz below is assuming all columns are 4 bytes, so got 12 left to go to make 16 bytes total
+					}
+					
+					// read the row here after the IP From column (remaining columns are all 4 bytes)
+					int RowLen = ColumnSize - FirstCol;
+					byte[] Row;
+					Row = ReadRow(RowOffset + FirstCol, RowLen, Buf, RF);
+					
+					if (_UseMemoryMappedFile) {
+						DataBuf = _MapDataBuffer.duplicate(); // this is to enable reading of a range of bytes in multi-threaded environment
+						DataBuf.order(ByteOrder.LITTLE_ENDIAN);
 					}
 					
 					if (PROXYTYPE_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.PROXY_TYPE || Mode == Modes.IS_PROXY) {
-							Proxy_Type = ReadStr(Read32(RowOffset + PROXYTYPE_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// Proxy_Type = ReadStr(Read32(RowOffset + PROXYTYPE_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							Proxy_Type = ReadStr(Read32_Row(Row, PROXYTYPE_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
 					if (COUNTRY_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.COUNTRY_SHORT || Mode == Modes.COUNTRY_LONG || Mode == Modes.IS_PROXY) {
-							CountryPos = Read32(RowOffset + COUNTRY_POSITION_OFFSET, Buf, RF).longValue();
+							// CountryPos = Read32(RowOffset + COUNTRY_POSITION_OFFSET, Buf, RF).longValue();
+							Pos = Read32_Row(Row, COUNTRY_POSITION_OFFSET).longValue();
 						}
 						if (Mode == Modes.ALL || Mode == Modes.COUNTRY_SHORT || Mode == Modes.IS_PROXY) {
-							Country_Short = ReadStr(CountryPos, RF);
+							// Country_Short = ReadStr(CountryPos, RF);
+							Country_Short = ReadStr(Pos, DataBuf, RF);
 						}
 						if (Mode == Modes.ALL || Mode == Modes.COUNTRY_LONG) {
-							Country_Long = ReadStr(CountryPos + 3, RF);
+							// Country_Long = ReadStr(CountryPos + 3, RF);
+							Country_Long = ReadStr(Pos + 3, DataBuf, RF);
 						}
 					}
 					
 					if (REGION_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.REGION) {
-							Region = ReadStr(Read32(RowOffset + REGION_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// Region = ReadStr(Read32(RowOffset + REGION_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							Region = ReadStr(Read32_Row(Row, REGION_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
 					if (CITY_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.CITY) {
-							City = ReadStr(Read32(RowOffset + CITY_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// City = ReadStr(Read32(RowOffset + CITY_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							City = ReadStr(Read32_Row(Row, CITY_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
 					if (ISP_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.ISP) {
-							ISP = ReadStr(Read32(RowOffset + ISP_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// ISP = ReadStr(Read32(RowOffset + ISP_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							ISP = ReadStr(Read32_Row(Row, ISP_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
 					if (DOMAIN_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.DOMAIN) {
-							Domain = ReadStr(Read32(RowOffset + DOMAIN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// Domain = ReadStr(Read32(RowOffset + DOMAIN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							Domain = ReadStr(Read32_Row(Row, DOMAIN_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
 					if (USAGETYPE_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.USAGE_TYPE) {
-							Usage_Type = ReadStr(Read32(RowOffset + USAGETYPE_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// Usage_Type = ReadStr(Read32(RowOffset + USAGETYPE_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							Usage_Type = ReadStr(Read32_Row(Row, USAGETYPE_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
 					if (ASN_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.ASN) {
-							ASN = ReadStr(Read32(RowOffset + ASN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// ASN = ReadStr(Read32(RowOffset + ASN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							ASN = ReadStr(Read32_Row(Row, ASN_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
 					if (AS_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.AS) {
-							AS = ReadStr(Read32(RowOffset + AS_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// AS = ReadStr(Read32(RowOffset + AS_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							AS = ReadStr(Read32_Row(Row, AS_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
 					if (LASTSEEN_ENABLED) {
 						if (Mode == Modes.ALL || Mode == Modes.LAST_SEEN) {
-							Last_Seen = ReadStr(Read32(RowOffset + LASTSEEN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							// Last_Seen = ReadStr(Read32(RowOffset + LASTSEEN_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							Last_Seen = ReadStr(Read32_Row(Row, LASTSEEN_POSITION_OFFSET).longValue(), DataBuf, RF);
 						}
 					}
 					
@@ -1011,7 +1055,20 @@ public class IP2Proxy {
 		}
 	}
 	
-	private BigInteger Read32Or128(final long Position, final int IPType, final MappedByteBuffer Buf, final RandomAccessFile RH) throws IOException {
+	private byte[] ReadRow(final long Position, final long MyLen, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
+		byte[] Row = new byte[(int)MyLen];
+		if (_UseMemoryMappedFile) {
+			Buf.position((int)Position);
+			Buf.get(Row, (int)0, (int)MyLen);
+		}
+		else {
+			RH.seek(Position - 1);
+			RH.read(Row, (int)0, (int)MyLen);
+		}
+		return Row;
+	}
+	
+	private BigInteger Read32Or128(final long Position, final int IPType, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
 		if (IPType == 4) {
 			return Read32(Position, Buf, RH);
 		}
@@ -1021,28 +1078,33 @@ public class IP2Proxy {
 		return BigInteger.ZERO;
 	}
 	
-	private BigInteger Read128(final long Position, final MappedByteBuffer Buf, final RandomAccessFile RH) throws IOException {
+	private BigInteger Read128(final long Position, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
 		BigInteger RetVal = BigInteger.ZERO;
 		final int BSize = 16;
 		byte Bytes[] = new byte[BSize];
 		
 		if (_UseMemoryMappedFile) {
-			for (int x = 0; x < BSize; x++) {
-				Bytes[x] = Buf.get((int)Position + x); // use absolute offset to be thread-safe
-			}
+			Buf.position((int)Position);
+			Buf.get(Bytes, (int)0, BSize);
 		}
 		else {
 			RH.seek(Position - 1);
-			for (int x = 0; x < BSize; x++) {
-				Bytes[x] = RH.readByte();
-			}
+			RH.read(Bytes, (int)0, BSize);
 		}
 		Reverse(Bytes);
 		RetVal = new BigInteger(1, Bytes);
 		return RetVal;
 	}
-
-	private BigInteger Read32(final long Position, final MappedByteBuffer Buf, final RandomAccessFile RH) throws IOException {
+	
+	private BigInteger Read32_Row(byte[] Row, final int From) throws IOException {
+		final int Len = 4; // 4 bytes
+		byte Bytes[] = new byte[Len];
+		System.arraycopy(Row, From, Bytes, (int)0, Len);
+		Reverse(Bytes);
+		return new BigInteger(1, Bytes);
+	}
+	
+	private BigInteger Read32(final long Position, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
 		if (_UseMemoryMappedFile) {
 			// simulate unsigned int by using long
 			return BigInteger.valueOf(Buf.getInt((int)Position) & 0xffffffffL); // use absolute offset to be thread-safe
@@ -1051,27 +1113,24 @@ public class IP2Proxy {
 			final int BSize = 4;
 			RH.seek(Position - 1);
 			byte Bytes[] = new byte[BSize];
-			for (int x = 0; x < BSize; x++) {
-				Bytes[x] = RH.readByte();
-			}
+			RH.read(Bytes, (int)0, BSize);
 			Reverse(Bytes);
 			return new BigInteger(1, Bytes);
 		}
 	}
-
-	private String ReadStr(long Position, final RandomAccessFile RH) throws IOException {
+	
+	private String ReadStr(long Position, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
 		final int Size;
-		char CBuf[] = null;
+		byte[] Bytes = null;
 		
 		if (_UseMemoryMappedFile) {
 			Position = Position - _MapDataOffset; // position stored in BIN file is for full file, not just the mapped data segment, so need to minus
 			Size = _MapDataBuffer.get((int)Position); // use absolute offset to be thread-safe
 			
 			try {
-				CBuf = new char[Size];
-				for (int x = 0; x < Size; x++) {
-					CBuf[x] = (char)_MapDataBuffer.get((int)Position + 1 + x); // use absolute offset to be thread-safe
-				}
+				Bytes = new byte[Size];
+				Buf.position((int)Position + 1);
+				Buf.get(Bytes, (int)0, Size);
 			}
 			catch (NegativeArraySizeException e) {
 				return null;
@@ -1081,16 +1140,16 @@ public class IP2Proxy {
 			RH.seek(Position);
 			Size = RH.read();
 			try {
-				CBuf = new char[Size];
-				for (int x = 0; x < Size; x++) {
-					CBuf[x] = (char)RH.read();
-				}
+				Bytes = new byte[Size];
+				RH.read(Bytes, (int)0, Size);
 			}
 			catch (NegativeArraySizeException e) {
 				return null;
 			}
 		}
-		return String.copyValueOf(CBuf);
+		
+		String S = new String(Bytes);
+		return S;
 	}
 	
 	private BigInteger[] IP2No(String IP) throws UnknownHostException {
@@ -1125,12 +1184,14 @@ public class IP2Proxy {
 				IPType = "4";
 				A2 = A2.shiftRight(80);
 				A2 = A2.and(LAST_32BITS);
+				A3 = new BigInteger("4");
 			}
 			else if (A2.compareTo(FROM_TEREDO) >= 0 && A2.compareTo(TO_TEREDO) <= 0) {
 				// Teredo so need to remap to ipv4
 				IPType = "4";
 				A2 = A2.not();
 				A2 = A2.and(LAST_32BITS);
+				A3 = new BigInteger("4");
 			}
 			A1 = new BigInteger(IPType);
 		}
