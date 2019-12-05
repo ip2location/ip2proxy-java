@@ -13,6 +13,7 @@ public class ProxyResult {
 	public String ASN;
 	public String AS;
 	public String Last_Seen;
+	public String Code_Guru;
 	
 	ProxyResult() {
 	
