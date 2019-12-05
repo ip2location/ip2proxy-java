@@ -34,6 +34,7 @@ public class IP2Proxy {
 	private static final String MSG_INVALID_IP = "INVALID IP ADDRESS";
 	private static final String MSG_MISSING_FILE = "MISSING FILE";
 	private static final String MSG_IPV6_UNSUPPORTED = "IPV6 ADDRESS MISSING IN IPV4 BIN";
+	private static final String TEST_CODEGURU = "HARLO WORLD";
 	
 	public enum IOModes {
 		IP2PROXY_FILE_IO,
