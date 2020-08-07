@@ -53,19 +53,21 @@ public class IP2Proxy {
 		ASN,
 		AS,
 		LAST_SEEN,
+		THREAT,
 		ALL;
 	}
 	
-	private static final int COUNTRY_POSITION[] = {0, 2, 3, 3, 3, 3, 3, 3, 3};
-	private static final int REGION_POSITION[] = {0, 0, 0, 4, 4, 4, 4, 4, 4};
-	private static final int CITY_POSITION[] = {0, 0, 0, 5, 5, 5, 5, 5, 5};
-	private static final int ISP_POSITION[] = {0, 0, 0, 0, 6, 6, 6, 6, 6};
-	private static final int PROXYTYPE_POSITION[] = {0, 0, 2, 2, 2, 2, 2, 2, 2};
-	private static final int DOMAIN_POSITION[] = {0, 0, 0, 0, 0, 7, 7, 7, 7};
-	private static final int USAGETYPE_POSITION[] = {0, 0, 0, 0, 0, 0, 8, 8, 8};
-	private static final int ASN_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 9, 9};
-	private static final int AS_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 10, 10};
-	private static final int LASTSEEN_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 0, 11};
+	private static final int COUNTRY_POSITION[] = {0, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+	private static final int REGION_POSITION[] = {0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4};
+	private static final int CITY_POSITION[] = {0, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5};
+	private static final int ISP_POSITION[] = {0, 0, 0, 0, 6, 6, 6, 6, 6, 6, 6};
+	private static final int PROXYTYPE_POSITION[] = {0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2};
+	private static final int DOMAIN_POSITION[] = {0, 0, 0, 0, 0, 7, 7, 7, 7, 7, 7};
+	private static final int USAGETYPE_POSITION[] = {0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8};
+	private static final int ASN_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9};
+	private static final int AS_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10};
+	private static final int LASTSEEN_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 0, 11, 11, 11};
+	private static final int THREAT_POSITION[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12};
 	
 	private MappedByteBuffer _IPv4Buffer = null;
 	private MappedByteBuffer _IPv6Buffer = null;
@@ -103,6 +105,7 @@ public class IP2Proxy {
 	private int ASN_POSITION_OFFSET;
 	private int AS_POSITION_OFFSET;
 	private int LASTSEEN_POSITION_OFFSET;
+	private int THREAT_POSITION_OFFSET;
 	
 	private boolean COUNTRY_ENABLED;
 	private boolean REGION_ENABLED;
@@ -114,8 +117,9 @@ public class IP2Proxy {
 	private boolean ASN_ENABLED;
 	private boolean AS_ENABLED;
 	private boolean LASTSEEN_ENABLED;
+	private boolean THREAT_ENABLED;
 	
-	private static final String _ModuleVersion = "2.2.0";
+	private static final String _ModuleVersion = "2.3.0";
 	
 	public IP2Proxy() {
 	
@@ -259,6 +263,15 @@ public class IP2Proxy {
 	}
 	
 /**
+* This function returns the threat type of the proxy.
+* @param IP IP Address you wish to query
+* @return Threat type of the proxy
+*/
+	public String GetThreat(String IP) throws IOException {
+		return ProxyQuery(IP, Modes.THREAT).Threat;
+	}
+	
+/**
 * This function returns proxy result.
 * @param IP IP Address you wish to query
 * @return Proxy result
@@ -383,6 +396,7 @@ public class IP2Proxy {
 				// ASN_POSITION_OFFSET = (ASN_POSITION[_DBType] != 0) ? (ASN_POSITION[_DBType] - 1) << 2 : 0;
 				// AS_POSITION_OFFSET = (AS_POSITION[_DBType] != 0) ? (AS_POSITION[_DBType] - 1) << 2 : 0;
 				// LASTSEEN_POSITION_OFFSET = (LASTSEEN_POSITION[_DBType] != 0) ? (LASTSEEN_POSITION[_DBType] - 1) << 2 : 0;
+				// THREAT_POSITION_OFFSET = (THREAT_POSITION[_DBType] != 0) ? (THREAT_POSITION[_DBType] - 1) << 2 : 0;
 				
 				// slightly different offset for reading by row
 				COUNTRY_POSITION_OFFSET = (COUNTRY_POSITION[_DBType] != 0) ? (COUNTRY_POSITION[_DBType] - 2) << 2 : 0;
@@ -395,6 +409,7 @@ public class IP2Proxy {
 				ASN_POSITION_OFFSET = (ASN_POSITION[_DBType] != 0) ? (ASN_POSITION[_DBType] - 2) << 2 : 0;
 				AS_POSITION_OFFSET = (AS_POSITION[_DBType] != 0) ? (AS_POSITION[_DBType] - 2) << 2 : 0;
 				LASTSEEN_POSITION_OFFSET = (LASTSEEN_POSITION[_DBType] != 0) ? (LASTSEEN_POSITION[_DBType] - 2) << 2 : 0;
+				THREAT_POSITION_OFFSET = (THREAT_POSITION[_DBType] != 0) ? (THREAT_POSITION[_DBType] - 2) << 2 : 0;
 				
 				
 				COUNTRY_ENABLED = (COUNTRY_POSITION[_DBType] != 0) ? true : false;
@@ -407,6 +422,7 @@ public class IP2Proxy {
 				ASN_ENABLED = (ASN_POSITION[_DBType] != 0) ? true : false;
 				AS_ENABLED = (AS_POSITION[_DBType] != 0) ? true : false;
 				LASTSEEN_ENABLED = (LASTSEEN_POSITION[_DBType] != 0) ? true : false;
+				THREAT_ENABLED = (THREAT_POSITION[_DBType] != 0) ? true : false;
 				
 				final MappedByteBuffer _IndexBuffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _IndexBaseAddr - 1, _BaseAddr - _IndexBaseAddr); // reading indexes
 				_IndexBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -509,6 +525,7 @@ public class IP2Proxy {
 				Result.ASN = MSG_INVALID_IP;
 				Result.AS = MSG_INVALID_IP;
 				Result.Last_Seen = MSG_INVALID_IP;
+				Result.Threat = MSG_INVALID_IP;
 				return Result;
 			}
 			
@@ -551,6 +568,7 @@ public class IP2Proxy {
 				Result.ASN = MSG_INVALID_IP;
 				Result.AS = MSG_INVALID_IP;
 				Result.Last_Seen = MSG_INVALID_IP;
+				Result.Threat = MSG_INVALID_IP;
 				return Result;
 			}
 			
@@ -576,6 +594,7 @@ public class IP2Proxy {
 					Result.ASN = MSG_MISSING_FILE;
 					Result.AS = MSG_MISSING_FILE;
 					Result.Last_Seen = MSG_MISSING_FILE;
+					Result.Threat = MSG_MISSING_FILE;
 					return Result;
 				}
 			}
@@ -623,6 +642,7 @@ public class IP2Proxy {
 					Result.ASN = MSG_IPV6_UNSUPPORTED;
 					Result.AS = MSG_IPV6_UNSUPPORTED;
 					Result.Last_Seen = MSG_IPV6_UNSUPPORTED;
+					Result.Threat = MSG_IPV6_UNSUPPORTED;
 					return Result;
 				}
 				MAX_IP_RANGE = MAX_IPV6_RANGE;
@@ -673,6 +693,7 @@ public class IP2Proxy {
 					String ASN = MSG_NOT_SUPPORTED;
 					String AS = MSG_NOT_SUPPORTED;
 					String Last_Seen = MSG_NOT_SUPPORTED;
+					String Threat = MSG_NOT_SUPPORTED;
 					
 					int FirstCol = 4; // IP From is 4 bytes
 					if (IPType == 6) { // IPv6
@@ -768,6 +789,13 @@ public class IP2Proxy {
 						}
 					}
 					
+					if (THREAT_ENABLED) {
+						if (Mode == Modes.ALL || Mode == Modes.THREAT) {
+							// Threat = ReadStr(Read32(RowOffset + THREAT_POSITION_OFFSET, Buf, RF).longValue(), RF);
+							Threat = ReadStr(Read32_Row(Row, THREAT_POSITION_OFFSET).longValue(), DataBuf, RF);
+						}
+					}
+					
 					if (Country_Short.equals("-") || Proxy_Type.equals("-")) {
 						Is_Proxy = 0;
 					}
@@ -792,6 +820,7 @@ public class IP2Proxy {
 					Result.ASN = ASN;
 					Result.AS = AS;
 					Result.Last_Seen = Last_Seen;
+					Result.Threat = Threat;
 					return Result;
 				}
 				else {
@@ -815,6 +844,7 @@ public class IP2Proxy {
 			Result.ASN = MSG_INVALID_IP;
 			Result.AS = MSG_INVALID_IP;
 			Result.Last_Seen = MSG_INVALID_IP;
+			Result.Threat = MSG_INVALID_IP;
 			return Result;
 		}
 		catch(IOException Ex) {
