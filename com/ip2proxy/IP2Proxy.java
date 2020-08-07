@@ -119,7 +119,7 @@ public class IP2Proxy {
 	private boolean LASTSEEN_ENABLED;
 	private boolean THREAT_ENABLED;
 	
-	private static final String _ModuleVersion = "2.3.0";
+	private static final String _ModuleVersion = "3.0.0";
 	
 	public IP2Proxy() {
 	
