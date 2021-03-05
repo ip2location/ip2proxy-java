@@ -119,7 +119,7 @@ public class IP2Proxy {
 	private boolean LASTSEEN_ENABLED;
 	private boolean THREAT_ENABLED;
 	
-	private static final String _ModuleVersion = "3.0.0";
+	private static final String _ModuleVersion = "3.0.1";
 	
 	public IP2Proxy() {
 	
@@ -300,15 +300,9 @@ public class IP2Proxy {
 	}
 	
 	private void DestroyMappedBytes() {
-		if (_IPv4Buffer != null) {
-			_IPv4Buffer = null;
-		}
-		if (_IPv6Buffer != null) {
-			_IPv6Buffer = null;
-		}
-		if (_MapDataBuffer != null) {
-			_MapDataBuffer = null;
-		}
+		_IPv4Buffer = null;
+		_IPv6Buffer = null;
+		_MapDataBuffer = null;
 	}
 	
 	private void CreateMappedBytes() throws IOException {
@@ -319,42 +313,33 @@ public class IP2Proxy {
 			final FileChannel InChannel = RF.getChannel();
 			CreateMappedBytes(InChannel);
 		}
-		catch (IOException Ex) {
-			throw Ex;
-		}
 		finally {
 			if (RF != null) {
 				RF.close();
-				RF = null;
 			}
 		}
 	}
 	
 	private void CreateMappedBytes(FileChannel InChannel) throws IOException {
-		try {
-			if (_IPv4Buffer == null) {
-				final long _IPv4Bytes = (long)_IPv4ColumnSize * (long)_DBCount;
-				_IPv4Offset = _BaseAddr - 1;
-				_IPv4Buffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _IPv4Offset, _IPv4Bytes);
-				_IPv4Buffer.order(ByteOrder.LITTLE_ENDIAN);
-				_MapDataOffset = _IPv4Offset + _IPv4Bytes;
-			}
-			
-			if (_DBCountIPv6 > 0 && _IPv6Buffer == null) {
-				final long _IPv6Bytes = (long)_IPv6ColumnSize * (long)_DBCountIPv6;
-				_IPv6Offset = _BaseAddrIPv6 - 1;
-				_IPv6Buffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _IPv6Offset, _IPv6Bytes);
-				_IPv6Buffer.order(ByteOrder.LITTLE_ENDIAN);
-				_MapDataOffset = _IPv6Offset + _IPv6Bytes;
-			}
-			
-			if (_MapDataBuffer == null) {
-				_MapDataBuffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _MapDataOffset, InChannel.size() - _MapDataOffset);
-				_MapDataBuffer.order(ByteOrder.LITTLE_ENDIAN);
-			}
+		if (_IPv4Buffer == null) {
+			final long _IPv4Bytes = (long)_IPv4ColumnSize * (long)_DBCount;
+			_IPv4Offset = _BaseAddr - 1;
+			_IPv4Buffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _IPv4Offset, _IPv4Bytes);
+			_IPv4Buffer.order(ByteOrder.LITTLE_ENDIAN);
+			_MapDataOffset = _IPv4Offset + _IPv4Bytes;
 		}
-		catch (IOException Ex) {
-			throw Ex;
+		
+		if (_DBCountIPv6 > 0 && _IPv6Buffer == null) {
+			final long _IPv6Bytes = (long)_IPv6ColumnSize * (long)_DBCountIPv6;
+			_IPv6Offset = _BaseAddrIPv6 - 1;
+			_IPv6Buffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _IPv6Offset, _IPv6Bytes);
+			_IPv6Buffer.order(ByteOrder.LITTLE_ENDIAN);
+			_MapDataOffset = _IPv6Offset + _IPv6Bytes;
+		}
+		
+		if (_MapDataBuffer == null) {
+			_MapDataBuffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _MapDataOffset, InChannel.size() - _MapDataOffset);
+			_MapDataBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		}
 	}
 	
@@ -453,13 +438,9 @@ public class IP2Proxy {
 				LoadOK = true;
 			}
 		}
-		catch(IOException Ex) {
-			throw Ex;
-		}
 		finally {
 			if (RF != null) {
 				RF.close();
-				RF = null;
 			}
 		}
 		return LoadOK;
@@ -847,13 +828,9 @@ public class IP2Proxy {
 			Result.Threat = MSG_INVALID_IP;
 			return Result;
 		}
-		catch(IOException Ex) {
-			throw Ex;
-		}
 		finally {
 			if (RF != null) {
 				RF.close();
-				RF = null;
 			}
 		}
 	}
@@ -895,8 +872,6 @@ public class IP2Proxy {
 					
 					IP2 = IP2.replaceAll(Match + "$", ":" + Bytes[3] + "." + Bytes[2] + "." + Bytes[1] + "." + Bytes[0]);
 					IP2 = IP2.replaceAll("::", Tmp);
-				}
-				else {
 				}
 			}
 		}
@@ -987,7 +962,6 @@ public class IP2Proxy {
 						Bf2.append(Bf4).append(Bf3);
 						IP2 = Bf2.toString().replaceAll(":$", "");
 					}
-					
 				}
 				else {
 					Matcher Mat2 = Pattern6.matcher(IP2);
