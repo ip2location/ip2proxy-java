@@ -119,7 +119,7 @@ public class IP2Proxy {
 	private boolean LASTSEEN_ENABLED;
 	private boolean THREAT_ENABLED;
 	
-	private static final String _ModuleVersion = "3.0.1";
+	private static final String _ModuleVersion = "3.0.2";
 	
 	public IP2Proxy() {
 	
@@ -157,6 +157,7 @@ public class IP2Proxy {
 /**
 * This function returns ans integer to state if it proxy.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return -1 if error, 0 if not a proxy, 1 if proxy except DCH and SES, 2 if proxy and either DCH or SES
 */
 	public int IsProxy(String IP) throws IOException {
@@ -166,6 +167,7 @@ public class IP2Proxy {
 /**
 * This function returns the country code.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Country code
 */
 	public String GetCountryShort(String IP) throws IOException {
@@ -175,6 +177,7 @@ public class IP2Proxy {
 /**
 * This function returns the country name.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Country name
 */
 	public String GetCountryLong(String IP) throws IOException {
@@ -184,6 +187,7 @@ public class IP2Proxy {
 /**
 * This function returns the region name.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Region name
 */
 	public String GetRegion(String IP) throws IOException {
@@ -193,6 +197,7 @@ public class IP2Proxy {
 /**
 * This function returns the city name.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return City name
 */
 	public String GetCity(String IP) throws IOException {
@@ -202,6 +207,7 @@ public class IP2Proxy {
 /**
 * This function returns the ISP name.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return ISP name
 */
 	public String GetISP(String IP) throws IOException {
@@ -211,6 +217,7 @@ public class IP2Proxy {
 /**
 * This function returns the proxy type.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Proxy type
 */
 	public String GetProxyType(String IP) throws IOException {
@@ -220,6 +227,7 @@ public class IP2Proxy {
 /**
 * This function returns the domain.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Domain
 */
 	public String GetDomain(String IP) throws IOException {
@@ -229,6 +237,7 @@ public class IP2Proxy {
 /**
 * This function returns the usage type.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Proxy type
 */
 	public String GetUsageType(String IP) throws IOException {
@@ -238,6 +247,7 @@ public class IP2Proxy {
 /**
 * This function returns the Autonomous System Number.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Autonomous System Number
 */
 	public String GetASN(String IP) throws IOException {
@@ -247,6 +257,7 @@ public class IP2Proxy {
 /**
 * This function returns the Autonomous System name.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Autonomous System name
 */
 	public String GetAS(String IP) throws IOException {
@@ -256,6 +267,7 @@ public class IP2Proxy {
 /**
 * This function returns number of days the proxy was last seen.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Number of days last seen
 */
 	public String GetLastSeen(String IP) throws IOException {
@@ -265,6 +277,7 @@ public class IP2Proxy {
 /**
 * This function returns the threat type of the proxy.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Threat type of the proxy
 */
 	public String GetThreat(String IP) throws IOException {
@@ -274,6 +287,7 @@ public class IP2Proxy {
 /**
 * This function returns proxy result.
 * @param IP IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return Proxy result
 */
 	public ProxyResult GetAll(String IP) throws IOException {
@@ -282,6 +296,7 @@ public class IP2Proxy {
 	
 /**
 * This function destroys the mapped bytes.
+* @return 0 to indicate no errors
 */
 	public int Close() {
 		DestroyMappedBytes();
@@ -449,13 +464,20 @@ public class IP2Proxy {
 /**
 * This function initialize the component with the BIN file path and IO mode.
 * @param DatabasePath Path to the BIN database file
-* @param IOMode Default is file IO
+* @throws IOException  If an input or output exception occurred
 * @return -1 if encounter error else 0
 */
 	public int Open(String DatabasePath) throws IOException {
 		return Open(DatabasePath, IOModes.IP2PROXY_FILE_IO);
 	}
 	
+/**
+* This function initialize the component with the BIN file path and IO mode.
+* @param DatabasePath Path to the BIN database file
+* @param IOMode Default is file IO
+* @throws IOException  If an input or output exception occurred
+* @return -1 if encounter error else 0
+*/
 	public int Open(String DatabasePath, IOModes IOMode) throws IOException {
 		if (_DBType == 0) {
 			_IPDatabasePath = DatabasePath;
@@ -479,6 +501,7 @@ public class IP2Proxy {
 /**
 * This function to query IP2Proxy data.
 * @param IPAddress IP Address you wish to query
+* @throws IOException  If an input or output exception occurred
 * @return IP2Proxy data
 */
 	public ProxyResult ProxyQuery(String IPAddress) throws IOException {
