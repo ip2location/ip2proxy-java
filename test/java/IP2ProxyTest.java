@@ -136,7 +136,15 @@ class IP2ProxyTest {
 			assertEquals(All.Threat, "NOT SUPPORTED");
 		}
 	}
-	
+
+	@Test
+	void TestQueryProvider() throws IOException {
+		if (Proxy.Open(binfilepath) == 0) {
+			All = Proxy.GetAll(ip);
+			assertEquals(All.Provider, "NOT SUPPORTED");
+		}
+	}
+
 	@AfterEach
 	void TearDown() {
 		Proxy.Close();

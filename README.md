@@ -19,7 +19,7 @@ Below are the methods supported in this class.
 |---|---|
 |Open|Open the IP2Proxy BIN data for lookup. Please see the **Usage** section of the 2 modes supported to load the BIN data file.|
 |Close|Close and clean up the file pointer.|
-|GetPackageVersion|Get the package version (1 to 10 for PX1 to PX10 respectively).|
+|GetPackageVersion|Get the package version (1 to 11 for PX1 to PX11 respectively).|
 |GetModuleVersion|Get the module version.|
 |GetDatabaseVersion|Get the database version.|
 |IsProxy|Check whether if an IP address was a proxy. Returned value:<ul><li>-1 : errors</li><li>0 : not a proxy</li><li>1 : a proxy</li><li>2 : a data center IP address or search engine robot</li></ul>|
@@ -36,6 +36,7 @@ Below are the methods supported in this class.
 |GetAS|Return the autonomous system name of the proxy.|
 |GetLastSeen|Return the number of days that the proxy was last seen.|
 |GetThreat|Return the threat type of the proxy.|
+|GetProvider|Return the provider of the proxy.|
 
 ## Usage
 
@@ -69,10 +70,11 @@ public class Main {
 			String AS;
 			String LastSeen;
 			String Threat;
+			String Provider;
 			
 			String IP = "221.121.146.0";
 			
-			if (Proxy.Open("/usr/data/IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP-DOMAIN-USAGETYPE-ASN-LASTSEEN-THREAT-RESIDENTIAL.BIN", IP2Proxy.IOModes.IP2PROXY_MEMORY_MAPPED) == 0) {
+			if (Proxy.Open("/usr/data/IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP-DOMAIN-USAGETYPE-ASN-LASTSEEN-THREAT-RESIDENTIAL-PROVIDER.BIN", IP2Proxy.IOModes.IP2PROXY_MEMORY_MAPPED) == 0) {
 				System.out.println("GetModuleVersion: " + Proxy.GetModuleVersion());
 				System.out.println("GetPackageVersion: " + Proxy.GetPackageVersion());
 				System.out.println("GetDatabaseVersion: " + Proxy.GetDatabaseVersion());
@@ -92,6 +94,7 @@ public class Main {
 				System.out.println("AS: " + All.AS);
 				System.out.println("Last_Seen: " + All.Last_Seen);
 				System.out.println("Threat: " + All.Threat);
+				System.out.println("Provider: " + All.Provider);
 				
 				// reading individual fields
 				IsProxy = Proxy.IsProxy(IP);
@@ -132,6 +135,9 @@ public class Main {
 				
 				Threat = Proxy.GetThreat(IP);
 				System.out.println("Threat: " + Threat);
+				
+				Provider = Proxy.GetProvider(IP);
+				System.out.println("Provider: " + Provider);
 			}
 			else {
 				System.out.println("Error reading BIN file.");
