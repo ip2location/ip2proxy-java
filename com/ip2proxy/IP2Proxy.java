@@ -125,7 +125,7 @@ public class IP2Proxy {
     private boolean THREAT_ENABLED;
     private boolean PROVIDER_ENABLED;
 
-    private static final String _ModuleVersion = "3.1.0";
+    private static final String _ModuleVersion = "3.2.0";
 
     public IP2Proxy() {
 

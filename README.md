@@ -5,12 +5,18 @@ This component allows user to query an IP address if it was being used as VPN an
 * Free IP2Proxy BIN Data: https://lite.ip2location.com
 * Commercial IP2Proxy BIN Data: https://www.ip2location.com/database/ip2proxy
 
+As an alternative, this component can also call the IP2Proxy Web Service. This requires an API key. If you don't have an existing API key, you can subscribe for one at the below:
+
+https://www.ip2location.com/web-service/ip2proxy
+
 ## Compilation
 
 ```bash
 javac com/ip2proxy/*.java
 jar cf ip2proxy.jar com/ip2proxy/*.class
 ```
+
+## QUERY USING THE BIN FILE
 
 ## Methods
 Below are the methods supported in this class.
@@ -144,10 +150,120 @@ public class Main {
 			}
 			Proxy.Close();
 		}
-		catch(Exception Ex) {
-			System.out.println(Ex);
+		catch(Exception e) {
+			System.out.println(e);
 		}
 	}
 }
 ```
 
+## QUERY USING THE IP2PROXY PROXY DETECTION WEB SERVICE
+
+## Methods
+Below are the methods supported in this class.
+
+|Method Name|Description|
+|---|---|
+|Open(String APIKey, String Package, boolean UseSSL)| Expects 3 input parameters:<ol><li>IP2Proxy API Key.</li><li>Package (PX1 - PX11)</li></li><li>Use HTTPS or HTTP</li></ol>|
+|IPQuery(String IPAddress)|Query IP address. This method returns a JsonObject containing the proxy info. <ul><li>countryCode</li><li>countryName</li><li>regionName</li><li>cityName</li><li>isp</li><li>domain</li><li>usageType</li><li>asn</li><li>as</li><li>lastSeen</li><li>threat</li><li>proxyType</li><li>isProxy</li><li>provider</li><ul>|
+|GetCredit()|This method returns the web service credit balance in a JsonObject.|
+
+## Usage
+
+```java
+import com.ip2proxy.*;
+import com.google.gson.*;
+
+public class Main {
+	public Main() {
+	}
+	
+	public static void main(String[] args) {
+		try
+		{
+			IP2ProxyWebService ws = new IP2ProxyWebService();
+			
+			String strIPAddress = "8.8.8.8";
+			String strAPIKey = "YOUR_API_KEY";
+			String strPackage = "PX11";
+			boolean boolSSL = true;
+			
+			ws.Open(strAPIKey, strPackage, boolSSL);
+			
+			JsonObject myresult = ws.IPQuery(strIPAddress);
+			
+			if ((myresult.get("response") != null) && (myresult.get("response").getAsString().equals("OK")))
+			{
+				System.out.println("countryCode: " + ((myresult.get("countryCode") != null) ? myresult.get("countryCode").getAsString() : ""));
+				System.out.println("countryName: " + ((myresult.get("countryName") != null) ? myresult.get("countryName").getAsString() : ""));
+				System.out.println("regionName: " + ((myresult.get("regionName") != null) ? myresult.get("regionName").getAsString() : ""));
+				System.out.println("cityName: " + ((myresult.get("cityName") != null) ? myresult.get("cityName").getAsString() : ""));
+				System.out.println("isp: " + ((myresult.get("isp") != null) ? myresult.get("isp").getAsString() : ""));
+				System.out.println("domain: " + ((myresult.get("domain") != null) ? myresult.get("domain").getAsString() : ""));
+				System.out.println("usageType: " + ((myresult.get("usageType") != null) ? myresult.get("usageType").getAsString() : ""));
+				System.out.println("asn: " + ((myresult.get("asn") != null) ? myresult.get("asn").getAsString() : ""));
+				System.out.println("as: " + ((myresult.get("as") != null) ? myresult.get("as").getAsString() : ""));
+				System.out.println("lastSeen: " + ((myresult.get("lastSeen") != null) ? myresult.get("lastSeen").getAsString() : ""));
+				System.out.println("proxyType: " + ((myresult.get("proxyType") != null) ? myresult.get("proxyType").getAsString() : ""));
+				System.out.println("threat: " + ((myresult.get("threat") != null) ? myresult.get("threat").getAsString() : ""));
+				System.out.println("isProxy: " + ((myresult.get("isProxy") != null) ? myresult.get("isProxy").getAsString() : ""));
+				System.out.println("provider: " + ((myresult.get("provider") != null) ? myresult.get("provider").getAsString() : ""));
+			}
+			else if (myresult.get("response") != null)
+			{
+				System.out.println("Error: " + myresult.get("response").getAsString());
+			}
+			
+			myresult = ws.GetCredit();
+			
+			if (myresult.get("response") != null)
+			{
+				System.out.println("Credit balance: " + myresult.get("response").getAsString());
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println(e);
+			e.printStackTrace(System.out);
+		}
+		
+	}
+}
+```
+
+### Proxy Type
+
+|Proxy Type|Description|
+|---|---|
+|VPN|Anonymizing VPN services|
+|TOR|Tor Exit Nodes|
+|PUB|Public Proxies|
+|WEB|Web Proxies|
+|DCH|Hosting Providers/Data Center|
+|SES|Search Engine Robots|
+|RES|Residential Proxies [PX10+]|
+
+### Usage Type
+
+|Usage Type|Description|
+|---|---|
+|COM|Commercial|
+|ORG|Organization|
+|GOV|Government|
+|MIL|Military|
+|EDU|University/College/School|
+|LIB|Library|
+|CDN|Content Delivery Network|
+|ISP|Fixed Line ISP|
+|MOB|Mobile ISP|
+|DCH|Data Center/Web Hosting/Transit|
+|SES|Search Engine Spider|
+|RSV|Reserved|
+
+### Threat Type
+
+|Threat Type|Description|
+|---|---|
+|SPAM|Spammer|
+|SCANNER|Security Scanner or Attack|
+|BOTNET|Spyware or Malware|
