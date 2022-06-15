@@ -93,8 +93,8 @@ public class IP2Proxy {
     private int _IndexBaseAddr = 0;
     private int _IndexBaseAddrIPv6 = 0;
     private int _ProductCode = 0;
-    // private int _ProductType = 0;
-    // private int _FileSize = 0;
+    private int _ProductType = 0;
+    private int _FileSize = 0;
 
     private boolean _UseMemoryMappedFile = false;
     private String _IPDatabasePath = "";
@@ -125,7 +125,7 @@ public class IP2Proxy {
     private boolean THREAT_ENABLED;
     private boolean PROVIDER_ENABLED;
 
-    private static final String _ModuleVersion = "3.2.0";
+    private static final String _ModuleVersion = "3.3.0";
 
     public IP2Proxy() {
 
@@ -346,8 +346,8 @@ public class IP2Proxy {
         _IndexBaseAddr = 0;
         _IndexBaseAddrIPv6 = 0;
         _ProductCode = 0;
-        // _ProductType = 0;
-        // _FileSize = 0;
+        _ProductType = 0;
+        _FileSize = 0;
         return 0;
     }
 
@@ -389,14 +389,14 @@ public class IP2Proxy {
 
     private boolean LoadBIN() throws IOException {
         boolean LoadOK = false;
-        RandomAccessFile RF = null;
+        RandomAccessFile aFile = null;
 
         try {
             if (_IPDatabasePath.length() > 0) {
-                RF = new RandomAccessFile(_IPDatabasePath, "r");
-                final FileChannel InChannel = RF.getChannel();
-                final MappedByteBuffer _HeaderBuffer = InChannel.map(FileChannel.MapMode.READ_ONLY, 0, 64); // 64 bytes header
-
+                aFile = new RandomAccessFile(_IPDatabasePath, "r");
+                byte[] _HeaderData = new byte[64];
+                aFile.read(_HeaderData);
+                ByteBuffer _HeaderBuffer = ByteBuffer.wrap(_HeaderData);
                 _HeaderBuffer.order(ByteOrder.LITTLE_ENDIAN);
 
                 _DBType = _HeaderBuffer.get(0);
@@ -410,10 +410,10 @@ public class IP2Proxy {
                 _BaseAddrIPv6 = _HeaderBuffer.getInt(17); // 4 bytes
                 _IndexBaseAddr = _HeaderBuffer.getInt(21); //4 bytes
                 _IndexBaseAddrIPv6 = _HeaderBuffer.getInt(25); //4 bytes
-
                 _ProductCode = _HeaderBuffer.get(29);
-                // _ProductType = _HeaderBuffer.get(31);
-                // _FileSize = _HeaderBuffer.getInt(32); //4 bytes
+                // below 2 fields just read for now, not being used yet
+                _ProductType = _HeaderBuffer.get(30);
+                _FileSize = _HeaderBuffer.getInt(31); //4 bytes
 
                 // check if is correct BIN (should be 2 for IP2Proxy BIN file), also checking for zipped file (PK being the first 2 chars)
                 if ((_ProductCode != 2 && _DBYear >= 21) || (_DBType == 80 && _DBColumn == 75)) // only BINs from Jan 2021 onwards have this byte set
@@ -450,8 +450,17 @@ public class IP2Proxy {
                 THREAT_ENABLED = THREAT_POSITION[_DBType] != 0;
                 PROVIDER_ENABLED = PROVIDER_POSITION[_DBType] != 0;
 
-                final MappedByteBuffer _IndexBuffer = InChannel.map(FileChannel.MapMode.READ_ONLY, _IndexBaseAddr - 1, _BaseAddr - _IndexBaseAddr);
+                int readLen = _IndexArrayIPv4.length;
+                if (_IndexBaseAddrIPv6 > 0) {
+                    readLen += _IndexArrayIPv6.length;
+                }
+
+                byte[] _IndexData = new byte[readLen * 8]; // 4 bytes for both from row and to row
+                aFile.seek(_IndexBaseAddr - 1);
+                aFile.read(_IndexData);
+                ByteBuffer _IndexBuffer = ByteBuffer.wrap(_IndexData);
                 _IndexBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
                 int Pointer = 0;
 
                 // read IPv4 index
@@ -471,15 +480,15 @@ public class IP2Proxy {
                 }
 
                 if (_UseMemoryMappedFile) {
-                    CreateMappedBytes(InChannel);
+                    CreateMappedBytes();
                 } else {
                     DestroyMappedBytes();
                 }
                 LoadOK = true;
             }
         } finally {
-            if (RF != null) {
-                RF.close();
+            if (aFile != null) {
+                aFile.close();
             }
         }
         return LoadOK;
@@ -538,6 +547,8 @@ public class IP2Proxy {
         RandomAccessFile RF = null;
         ByteBuffer Buf = null;
         ByteBuffer DataBuf = null;
+        byte[] Row;
+        byte[] FullRow = null;
 
         try {
             if (IPAddress == null || IPAddress.length() == 0) {
@@ -571,6 +582,7 @@ public class IP2Proxy {
             BigInteger[] BI;
             boolean OverCapacity = false;
             String[] RetArr;
+            int FirstCol = 4; // IP From is 4 bytes
 
             try {
                 BI = IP2No(IPAddress);
@@ -652,6 +664,7 @@ public class IP2Proxy {
                 Low = _IndexArrayIPv4[IndexAddr][0];
                 High = _IndexArrayIPv4[IndexAddr][1];
             } else { // IPv6
+                FirstCol = 16; // IPv6 is 16 bytes
                 if (_DBCountIPv6 == 0) {
                     Result.Is_Proxy = -1;
                     Result.Proxy_Type = MSG_IPV6_UNSUPPORTED;
@@ -696,11 +709,16 @@ public class IP2Proxy {
                 RowOffset2 = RowOffset + ColumnSize;
 
                 if (_UseMemoryMappedFile) {
+                    // only reading the IP From fields
                     OverCapacity = (RowOffset2 >= BufCapacity);
+                    IPFrom = Read32Or128(RowOffset, IPType, Buf, RF);
+                    IPTo = (OverCapacity) ? BigInteger.ZERO : Read32Or128(RowOffset2, IPType, Buf, RF);
+                } else {
+                    // reading IP From + whole row + next IP From
+                    FullRow = ReadRow(RowOffset, ColumnSize + FirstCol, Buf, RF);
+                    IPFrom = Read32Or128Row(FullRow, 0, FirstCol);
+                    IPTo = (OverCapacity) ? BigInteger.ZERO : Read32Or128Row(FullRow, ColumnSize, FirstCol);
                 }
-
-                IPFrom = Read32Or128(RowOffset, IPType, Buf, RF);
-                IPTo = (OverCapacity) ? BigInteger.ZERO : Read32Or128(RowOffset2, IPType, Buf, RF);
 
                 if (IPNo.compareTo(IPFrom) >= 0 && IPNo.compareTo(IPTo) < 0) {
                     int Is_Proxy = -1;
@@ -718,19 +736,15 @@ public class IP2Proxy {
                     String Threat = MSG_NOT_SUPPORTED;
                     String Provider = MSG_NOT_SUPPORTED;
 
-                    int FirstCol = 4; // IP From is 4 bytes
-                    if (IPType == 6) { // IPv6
-                        FirstCol = 16; // IPv6 is 16 bytes
-                    }
-
-                    // read the row here after the IP From column (remaining columns are all 4 bytes)
                     int RowLen = ColumnSize - FirstCol;
-                    byte[] Row;
-                    Row = ReadRow(RowOffset + FirstCol, RowLen, Buf, RF);
 
                     if (_UseMemoryMappedFile) {
+                        Row = ReadRow(RowOffset + FirstCol, RowLen, Buf, RF);
                         DataBuf = _MapDataBuffer.duplicate(); // this is to enable reading of a range of bytes in multi-threaded environment
                         DataBuf.order(ByteOrder.LITTLE_ENDIAN);
+                    } else {
+                        Row = new byte[RowLen];
+                        System.arraycopy(FullRow, FirstCol, Row, (int) 0, RowLen); // extract the actual row data
                     }
 
                     if (PROXYTYPE_ENABLED) {
@@ -1089,6 +1103,13 @@ public class IP2Proxy {
         return Row;
     }
 
+    private BigInteger Read32Or128Row(byte[] Row, final int From, final int Len) throws IOException {
+        byte[] Buf = new byte[Len];
+        System.arraycopy(Row, From, Buf, (int) 0, Len);
+        Reverse(Buf);
+        return new BigInteger(1, Buf);
+    }
+
     private BigInteger Read32Or128(final long Position, final int IPType, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
         if (IPType == 4) {
             return Read32(Position, Buf, RH);
@@ -1137,33 +1158,44 @@ public class IP2Proxy {
         }
     }
 
-    private String ReadStr(long Position, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
-        final int Size;
-        byte[] Bytes;
+    private String ReadStr(long Position, final ByteBuffer DataBuf, final RandomAccessFile FileHandle) throws IOException {
+        int Size = 257; // max size of string field + 1 byte for the position
+        final int Len;
+        final byte[] Data = new byte[Size];
+        byte[] Buf;
 
         if (_UseMemoryMappedFile) {
             Position = Position - _MapDataOffset; // position stored in BIN file is for full file, not just the mapped data segment, so need to minus
-            Size = _MapDataBuffer.get((int) Position); // use absolute offset to be thread-safe
-
             try {
-                Bytes = new byte[Size];
-                Buf.position((int) Position + 1);
-                Buf.get(Bytes, 0, Size);
+                DataBuf.position((int) Position);
+                if (DataBuf.remaining() < Size) {
+                    Size = DataBuf.remaining();
+                }
+                DataBuf.get(Data, 0, Size);
+                Len = Data[0];
+
+                Buf = new byte[Len];
+                System.arraycopy(Data, 1, Buf, (int) 0, Len);
+
             } catch (NegativeArraySizeException e) {
                 return null;
             }
+
         } else {
-            RH.seek(Position);
-            Size = RH.read();
+            FileHandle.seek(Position);
             try {
-                Bytes = new byte[Size];
-                RH.read(Bytes, 0, Size);
+                FileHandle.read(Data, 0, Size);
+                Len = Data[0];
+
+                Buf = new byte[Len];
+                System.arraycopy(Data, 1, Buf, (int) 0, Len);
+
             } catch (NegativeArraySizeException e) {
                 return null;
             }
         }
 
-        return new String(Bytes);
+        return new String(Buf);
     }
 
     private BigInteger[] IP2No(String IP) throws UnknownHostException {

@@ -31,5 +31,4 @@ class Http {
             throw new RuntimeException(e);
         }
     }
-
 }
