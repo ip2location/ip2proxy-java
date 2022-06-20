@@ -1159,7 +1159,7 @@ public class IP2Proxy {
     }
 
     private String ReadStr(long Position, final ByteBuffer DataBuf, final RandomAccessFile FileHandle) throws IOException {
-        int Size = 256; // max size of string field + 1 byte for the position
+        int Size = 256; // max size of string field + 1 byte for the length
         final int Len;
         final byte[] Data = new byte[Size];
         byte[] Buf;
