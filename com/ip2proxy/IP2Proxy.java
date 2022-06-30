@@ -1,7 +1,6 @@
 package com.ip2proxy;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -98,6 +97,7 @@ public class IP2Proxy {
 
     private boolean _UseMemoryMappedFile = false;
     private String _IPDatabasePath = "";
+    private FileLike.Supplier binFile;
 
     private int COUNTRY_POSITION_OFFSET;
     private int REGION_POSITION_OFFSET;
@@ -125,10 +125,27 @@ public class IP2Proxy {
     private boolean THREAT_ENABLED;
     private boolean PROVIDER_ENABLED;
 
-    private static final String _ModuleVersion = "3.3.0";
+    private static final String _ModuleVersion = "3.4.0";
 
     public IP2Proxy() {
 
+    }
+
+    interface FileLike {
+
+        interface Supplier {
+            FileLike open() throws IOException;
+
+            boolean isValid();
+        }
+
+        int read(byte[] buffer) throws IOException;
+
+        int read(byte b[], int off, int len) throws IOException;
+
+        void seek(long pos) throws IOException;
+
+        void close() throws IOException;
     }
 
     /**
@@ -389,11 +406,11 @@ public class IP2Proxy {
 
     private boolean LoadBIN() throws IOException {
         boolean LoadOK = false;
-        RandomAccessFile aFile = null;
+        FileLike aFile = null;
 
         try {
-            if (_IPDatabasePath.length() > 0) {
-                aFile = new RandomAccessFile(_IPDatabasePath, "r");
+            if (binFile.isValid()) {
+                aFile = binFile.open();
                 byte[] _HeaderData = new byte[64];
                 aFile.read(_HeaderData);
                 ByteBuffer _HeaderBuffer = ByteBuffer.wrap(_HeaderData);
@@ -521,6 +538,74 @@ public class IP2Proxy {
                 _UseMemoryMappedFile = true;
             }
 
+            binFile = new FileLike.Supplier() {
+                public FileLike open() throws IOException {
+                    return new FileLike() {
+                        private final RandomAccessFile aFile = new RandomAccessFile(DatabasePath, "r");
+
+                        public int read(byte[] buffer) throws IOException {
+                            return aFile.read(buffer);
+                        }
+
+                        public int read(byte[] b, int off, int len) throws IOException {
+                            return aFile.read(b, off, len);
+                        }
+
+                        public void seek(long pos) throws IOException {
+                            aFile.seek(pos);
+                        }
+
+                        public void close() throws IOException {
+                            aFile.close();
+                        }
+                    };
+                }
+
+                public boolean isValid() {
+                    return DatabasePath.length() > 0;
+                }
+            };
+
+            if (!LoadBIN()) {
+                return -1;
+            } else {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    public int Open(byte[] db) throws IOException {
+        if (_DBType == 0) {
+            binFile = new FileLike.Supplier() {
+                public FileLike open() {
+                    return new FileLike() {
+                        private final ByteArrayInputStream stream = new ByteArrayInputStream(db);
+
+                        public int read(byte[] buffer) throws IOException {
+                            return stream.read(buffer);
+                        }
+
+                        public int read(byte[] b, int off, int len) {
+                            return stream.read(b, off, len);
+                        }
+
+                        public void seek(long pos) {
+                            stream.reset();
+                            stream.skip(pos);
+                        }
+
+                        public void close() throws IOException {
+                            stream.close();
+                        }
+                    };
+                }
+
+                public boolean isValid() {
+                    return db.length > 0;
+                }
+            };
             if (!LoadBIN()) {
                 return -1;
             } else {
@@ -544,7 +629,7 @@ public class IP2Proxy {
 
     public ProxyResult ProxyQuery(String IPAddress, Modes Mode) throws IOException {
         ProxyResult Result = new ProxyResult();
-        RandomAccessFile RF = null;
+        FileLike RF = null;
         ByteBuffer Buf = null;
         ByteBuffer DataBuf = null;
         byte[] Row;
@@ -645,7 +730,7 @@ public class IP2Proxy {
                 }
             } else {
                 DestroyMappedBytes();
-                RF = new RandomAccessFile(_IPDatabasePath, "r");
+                RF = binFile.open();
             }
 
             if (IPType == 4) { // IPv4
@@ -1091,7 +1176,7 @@ public class IP2Proxy {
         }
     }
 
-    private byte[] ReadRow(final long Position, final long MyLen, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
+    private byte[] ReadRow(final long Position, final long MyLen, final ByteBuffer Buf, final FileLike RH) throws IOException {
         byte[] Row = new byte[(int) MyLen];
         if (_UseMemoryMappedFile) {
             Buf.position((int) Position);
@@ -1110,7 +1195,7 @@ public class IP2Proxy {
         return new BigInteger(1, Buf);
     }
 
-    private BigInteger Read32Or128(final long Position, final int IPType, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
+    private BigInteger Read32Or128(final long Position, final int IPType, final ByteBuffer Buf, final FileLike RH) throws IOException {
         if (IPType == 4) {
             return Read32(Position, Buf, RH);
         } else if (IPType == 6) {
@@ -1119,7 +1204,7 @@ public class IP2Proxy {
         return BigInteger.ZERO;
     }
 
-    private BigInteger Read128(final long Position, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
+    private BigInteger Read128(final long Position, final ByteBuffer Buf, final FileLike RH) throws IOException {
         BigInteger RetVal;
         final int BSize = 16;
         byte[] Bytes = new byte[BSize];
@@ -1144,7 +1229,7 @@ public class IP2Proxy {
         return new BigInteger(1, Bytes);
     }
 
-    private BigInteger Read32(final long Position, final ByteBuffer Buf, final RandomAccessFile RH) throws IOException {
+    private BigInteger Read32(final long Position, final ByteBuffer Buf, final FileLike RH) throws IOException {
         if (_UseMemoryMappedFile) {
             // simulate unsigned int by using long
             return BigInteger.valueOf(Buf.getInt((int) Position) & 0xffffffffL); // use absolute offset to be thread-safe
@@ -1158,7 +1243,7 @@ public class IP2Proxy {
         }
     }
 
-    private String ReadStr(long Position, final ByteBuffer DataBuf, final RandomAccessFile FileHandle) throws IOException {
+    private String ReadStr(long Position, final ByteBuffer DataBuf, final FileLike FileHandle) throws IOException {
         int Size = 256; // max size of string field + 1 byte for the length
         final int Len;
         final byte[] Data = new byte[Size];
