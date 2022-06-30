@@ -16,10 +16,11 @@ class IP2ProxyTest {
     private static ProxyResult All;
     private static String binfile = "IP2PROXY-LITE-PX1.BIN";
     private static String binfilepath;
+    private static byte[] binFileBytes;
     private static String ip = "8.8.8.8";
 
     @BeforeAll
-    static void Setup() {
+    static void Setup() throws IOException {
         Path binpath = Paths.get("src", "test", "resources", binfile);
         binfilepath = binpath.toFile().getAbsolutePath();
         binFileBytes = Files.readAllBytes(binpath);
@@ -35,14 +36,11 @@ class IP2ProxyTest {
         assertThrows(IOException.class, () -> {
             Proxy.Open("dummy.bin");
         });
+
+        assertThrows(NullPointerException.class, () -> {
+            Proxy.Open((byte[])null);
+        });
     }
-
-    assertThrows(NullPointerException .class, () ->
-
-    {
-        loc.Open((byte[]) null);
-    });
-}
 
     @Test
     void TestQueryIsProxy() throws IOException {
