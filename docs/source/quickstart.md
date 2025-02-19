@@ -47,10 +47,11 @@ public class Main {
 			String LastSeen;
 			String Threat;
 			String Provider;
+			String FraudScore;
 			
 			String IP = "221.121.146.0";
 			
-			if (Proxy.Open("/usr/data/IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP-DOMAIN-USAGETYPE-ASN-LASTSEEN-THREAT-RESIDENTIAL-PROVIDER.BIN", IP2Proxy.IOModes.IP2PROXY_MEMORY_MAPPED) == 0) {
+			if (Proxy.Open("/usr/data/IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP-DOMAIN-USAGETYPE-ASN-LASTSEEN-THREAT-RESIDENTIAL-PROVIDER-FRAUDSCORE.BIN", IP2Proxy.IOModes.IP2PROXY_MEMORY_MAPPED) == 0) {
 				System.out.println("GetModuleVersion: " + Proxy.GetModuleVersion());
 				System.out.println("GetPackageVersion: " + Proxy.GetPackageVersion());
 				System.out.println("GetDatabaseVersion: " + Proxy.GetDatabaseVersion());
@@ -71,6 +72,7 @@ public class Main {
 				System.out.println("Last_Seen: " + All.Last_Seen);
 				System.out.println("Threat: " + All.Threat);
 				System.out.println("Provider: " + All.Provider);
+				System.out.println("Fraud_Score: " + All.Fraud_Score);
 				
 				// reading individual fields
 				IsProxy = Proxy.IsProxy(IP);
@@ -114,6 +116,9 @@ public class Main {
 				
 				Provider = Proxy.GetProvider(IP);
 				System.out.println("Provider: " + Provider);
+				
+				FraudScore = Proxy.GetFraudScore(IP);
+				System.out.println("FraudScore: " + FraudScore);
 			}
 			else {
 				System.out.println("Error reading BIN file.");

@@ -4,7 +4,7 @@
 # -- Project information
 
 project = 'IP2Proxy Java'
-copyright = '2024, IP2Location'
+copyright = '2025, IP2Location'
 author = 'IP2Location'
 
 release = '0.1.0'
@@ -57,4 +57,4 @@ html_favicon = 'images/favicon.ico'
 
 html_title = "IP2Proxy Java"
 
-# html_baseurl = "https://ip2proxy-go.readthedocs.io/en/latest/"
+# html_baseurl = "https://ip2proxy-java.readthedocs.io/en/latest/"

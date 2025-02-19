@@ -154,6 +154,14 @@ class IP2ProxyTest {
         }
     }
 
+    @Test
+    void TestQueryFraudScore() throws IOException {
+        if (Proxy.Open(binfilepath) == 0) {
+            All = Proxy.GetAll(ip);
+            assertEquals(All.Fraud_Score, "NOT SUPPORTED");
+        }
+    }
+
     @AfterEach
     void TearDown() {
         Proxy.Close();

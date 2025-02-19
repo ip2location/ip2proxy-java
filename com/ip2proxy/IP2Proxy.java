@@ -55,21 +55,23 @@ public class IP2Proxy {
         LAST_SEEN,
         THREAT,
         PROVIDER,
+        FRAUD_SCORE,
         ALL;
     }
 
-    private static final int[] COUNTRY_POSITION = {0, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
-    private static final int[] REGION_POSITION = {0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4};
-    private static final int[] CITY_POSITION = {0, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5};
-    private static final int[] ISP_POSITION = {0, 0, 0, 0, 6, 6, 6, 6, 6, 6, 6, 6};
-    private static final int[] PROXYTYPE_POSITION = {0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
-    private static final int[] DOMAIN_POSITION = {0, 0, 0, 0, 0, 7, 7, 7, 7, 7, 7, 7};
-    private static final int[] USAGETYPE_POSITION = {0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8};
-    private static final int[] ASN_POSITION = {0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9};
-    private static final int[] AS_POSITION = {0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10};
-    private static final int[] LASTSEEN_POSITION = {0, 0, 0, 0, 0, 0, 0, 0, 11, 11, 11, 11};
-    private static final int[] THREAT_POSITION = {0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 12};
-    private static final int[] PROVIDER_POSITION = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13};
+    private static final int[] COUNTRY_POSITION = {0, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+    private static final int[] REGION_POSITION = {0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
+    private static final int[] CITY_POSITION = {0, 0, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
+    private static final int[] ISP_POSITION = {0, 0, 0, 0, 6, 6, 6, 6, 6, 6, 6, 6, 6};
+    private static final int[] PROXYTYPE_POSITION = {0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2};
+    private static final int[] DOMAIN_POSITION = {0, 0, 0, 0, 0, 7, 7, 7, 7, 7, 7, 7, 7};
+    private static final int[] USAGETYPE_POSITION = {0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8};
+    private static final int[] ASN_POSITION = {0, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9};
+    private static final int[] AS_POSITION = {0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10};
+    private static final int[] LASTSEEN_POSITION = {0, 0, 0, 0, 0, 0, 0, 0, 11, 11, 11, 11, 11};
+    private static final int[] THREAT_POSITION = {0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 12, 12, 12};
+    private static final int[] PROVIDER_POSITION = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 13};
+    private static final int[] FRAUDSCORE_POSITION = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14};
 
     private MappedByteBuffer _IPv4Buffer = null;
     private MappedByteBuffer _IPv6Buffer = null;
@@ -111,6 +113,7 @@ public class IP2Proxy {
     private int LASTSEEN_POSITION_OFFSET;
     private int THREAT_POSITION_OFFSET;
     private int PROVIDER_POSITION_OFFSET;
+    private int FRAUDSCORE_POSITION_OFFSET;
 
     private boolean COUNTRY_ENABLED;
     private boolean REGION_ENABLED;
@@ -124,8 +127,9 @@ public class IP2Proxy {
     private boolean LASTSEEN_ENABLED;
     private boolean THREAT_ENABLED;
     private boolean PROVIDER_ENABLED;
+    private boolean FRAUDSCORE_ENABLED;
 
-    private static final String _ModuleVersion = "3.4.0";
+    private static final String _ModuleVersion = "3.5.0";
 
     public IP2Proxy() {
 
@@ -180,7 +184,7 @@ public class IP2Proxy {
     }
 
     /**
-     * This function returns ans integer to state if it proxy.
+     * This function returns an integer to state if it proxy.
      *
      * @param IP IP Address you wish to query
      * @return -1 if error, 0 if not a proxy, 1 if proxy except DCH and SES, 2 if proxy and either DCH or SES
@@ -334,6 +338,17 @@ public class IP2Proxy {
     }
 
     /**
+     * This function returns the fraud score for the IP.
+     *
+     * @param IP IP Address you wish to query
+     * @return Fraud score of the IP
+     * @throws IOException If an input or output exception occurred
+     */
+    public String GetFraudScore(String IP) throws IOException {
+        return ProxyQuery(IP, Modes.FRAUD_SCORE).Fraud_Score;
+    }
+
+    /**
      * This function returns proxy result.
      *
      * @param IP IP Address you wish to query
@@ -453,6 +468,7 @@ public class IP2Proxy {
                 LASTSEEN_POSITION_OFFSET = (LASTSEEN_POSITION[_DBType] != 0) ? (LASTSEEN_POSITION[_DBType] - 2) << 2 : 0;
                 THREAT_POSITION_OFFSET = (THREAT_POSITION[_DBType] != 0) ? (THREAT_POSITION[_DBType] - 2) << 2 : 0;
                 PROVIDER_POSITION_OFFSET = (PROVIDER_POSITION[_DBType] != 0) ? (PROVIDER_POSITION[_DBType] - 2) << 2 : 0;
+                FRAUDSCORE_POSITION_OFFSET = (FRAUDSCORE_POSITION[_DBType] != 0) ? (FRAUDSCORE_POSITION[_DBType] - 2) << 2 : 0;
 
                 COUNTRY_ENABLED = COUNTRY_POSITION[_DBType] != 0;
                 REGION_ENABLED = REGION_POSITION[_DBType] != 0;
@@ -466,6 +482,7 @@ public class IP2Proxy {
                 LASTSEEN_ENABLED = LASTSEEN_POSITION[_DBType] != 0;
                 THREAT_ENABLED = THREAT_POSITION[_DBType] != 0;
                 PROVIDER_ENABLED = PROVIDER_POSITION[_DBType] != 0;
+                FRAUDSCORE_ENABLED = FRAUDSCORE_POSITION[_DBType] != 0;
 
                 int readLen = _IndexArrayIPv4.length;
                 if (_IndexBaseAddrIPv6 > 0) {
@@ -651,6 +668,7 @@ public class IP2Proxy {
                 Result.Last_Seen = MSG_INVALID_IP;
                 Result.Threat = MSG_INVALID_IP;
                 Result.Provider = MSG_INVALID_IP;
+                Result.Fraud_Score = MSG_INVALID_IP;
                 return Result;
             }
 
@@ -693,6 +711,7 @@ public class IP2Proxy {
                 Result.Last_Seen = MSG_INVALID_IP;
                 Result.Threat = MSG_INVALID_IP;
                 Result.Provider = MSG_INVALID_IP;
+                Result.Fraud_Score = MSG_INVALID_IP;
                 return Result;
             }
 
@@ -720,6 +739,7 @@ public class IP2Proxy {
                     Result.Last_Seen = MSG_MISSING_FILE;
                     Result.Threat = MSG_MISSING_FILE;
                     Result.Provider = MSG_MISSING_FILE;
+                    Result.Fraud_Score = MSG_MISSING_FILE;
                     return Result;
                 }
             }
@@ -765,6 +785,7 @@ public class IP2Proxy {
                     Result.Last_Seen = MSG_IPV6_UNSUPPORTED;
                     Result.Threat = MSG_IPV6_UNSUPPORTED;
                     Result.Provider = MSG_IPV6_UNSUPPORTED;
+                    Result.Fraud_Score = MSG_IPV6_UNSUPPORTED;
                     return Result;
                 }
                 MAX_IP_RANGE = MAX_IPV6_RANGE;
@@ -820,6 +841,7 @@ public class IP2Proxy {
                     String Last_Seen = MSG_NOT_SUPPORTED;
                     String Threat = MSG_NOT_SUPPORTED;
                     String Provider = MSG_NOT_SUPPORTED;
+                    String Fraud_Score = MSG_NOT_SUPPORTED;
 
                     int RowLen = ColumnSize - FirstCol;
 
@@ -910,6 +932,12 @@ public class IP2Proxy {
                         }
                     }
 
+                    if (FRAUDSCORE_ENABLED) {
+                        if (Mode == Modes.ALL || Mode == Modes.FRAUD_SCORE) {
+                            Fraud_Score = ReadStr(Read32Row(Row, FRAUDSCORE_POSITION_OFFSET).longValue(), DataBuf, RF);
+                        }
+                    }
+
                     if (Country_Short.equals("-") || Proxy_Type.equals("-")) {
                         Is_Proxy = 0;
                     } else {
@@ -934,6 +962,7 @@ public class IP2Proxy {
                     Result.Last_Seen = Last_Seen;
                     Result.Threat = Threat;
                     Result.Provider = Provider;
+                    Result.Fraud_Score = Fraud_Score;
                     return Result;
                 } else {
                     if (IPNo.compareTo(IPFrom) < 0) {
@@ -957,6 +986,7 @@ public class IP2Proxy {
             Result.Last_Seen = MSG_INVALID_IP;
             Result.Threat = MSG_INVALID_IP;
             Result.Provider = MSG_INVALID_IP;
+            Result.Fraud_Score = MSG_INVALID_IP;
             return Result;
         } finally {
             if (RF != null) {

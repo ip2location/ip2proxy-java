@@ -15,6 +15,7 @@ public class ProxyResult {
     public String Last_Seen;
     public String Threat;
     public String Provider;
+    public String Fraud_Score;
 
     ProxyResult() {
 
