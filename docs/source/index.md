@@ -1,4 +1,5 @@
 # IP2Proxy Java Component
+[![Maven Central Version](https://img.shields.io/maven-central/v/com.ip2proxy/ip2proxy-java)](https://central.sonatype.com/artifact/com.ip2proxy/ip2proxy-java)
 
 This component allows user to query an IP address if it was being used as VPN anonymizer, open proxies, web proxies, Tor exits, data center, web hosting (DCH) range, search engine robots (SES), residential proxies (RES), consumer privacy networks (CPN), and enterprise private networks (EPN). It lookup the proxy IP address from **IP2Proxy BIN Data** file. This data file can be downloaded at
 
