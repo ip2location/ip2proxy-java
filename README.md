@@ -1,7 +1,7 @@
 # IP2Proxy Java Component
 [![Maven Central Version](https://img.shields.io/maven-central/v/com.ip2proxy/ip2proxy-java)](https://central.sonatype.com/artifact/com.ip2proxy/ip2proxy-java)
 
-This component allows user to query an IP address if it was being used as VPN anonymizer, open proxies, web proxies, Tor exits, data center, web hosting (DCH) range, search engine robots (SES), residential proxies (RES), consumer privacy networks (CPN), and enterprise private networks (EPN). It lookup the proxy IP address from **IP2Proxy BIN Data** file. This data file can be downloaded at
+This component allows user to query an IP address if it was being used as VPN anonymizer, open proxies, web proxies, Tor exits, data center, web hosting (DCH) range, search engine robots (SES), AI crawlers (AIC), residential proxies (RES), consumer privacy networks (CPN), and enterprise private networks (EPN). It lookup the proxy IP address from **IP2Proxy BIN Data** file. This data file can be downloaded at
 
 * Free IP2Proxy BIN Data: https://lite.ip2location.com
 * Commercial IP2Proxy BIN Data: https://www.ip2location.com/database/ip2proxy
@@ -22,6 +22,7 @@ To learn more about installation, usage, and code examples, please visit the dev
 |RES|Residential Proxies [PX10+]|
 |CPN|Consumer Privacy Networks. [PX11+]|
 |EPN|Enterprise Private Networks. [PX11+]|
+|AIC|AI Crawlers. [PX12+]|
 
 ### Usage Type
 
@@ -36,8 +37,10 @@ To learn more about installation, usage, and code examples, please visit the dev
 |CDN|Content Delivery Network|
 |ISP|Fixed Line ISP|
 |MOB|Mobile ISP|
+|ISP/MOB|Fixed Line or Mobile ISP|
 |DCH|Data Center/Web Hosting/Transit|
 |SES|Search Engine Spider|
+|SES/AIC|Search Engine Spider/AI Crawlers|
 |RSV|Reserved|
 
 ### Threat Type

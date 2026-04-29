@@ -129,7 +129,7 @@ public class IP2Proxy {
     private boolean PROVIDER_ENABLED;
     private boolean FRAUDSCORE_ENABLED;
 
-    private static final String _ModuleVersion = "3.5.0";
+    private static final String _ModuleVersion = "3.6.0";
 
     public IP2Proxy() {
 
@@ -941,7 +941,7 @@ public class IP2Proxy {
                     if (Country_Short.equals("-") || Proxy_Type.equals("-")) {
                         Is_Proxy = 0;
                     } else {
-                        if (Proxy_Type.equals("DCH") || Proxy_Type.equals("SES")) {
+                        if (Proxy_Type.equals("DCH") || Proxy_Type.equals("SES") || Proxy_Type.equals("AIC")) {
                             Is_Proxy = 2;
                         } else {
                             Is_Proxy = 1;
